@@ -45,8 +45,9 @@
 // and a paged-pool allocator.
 
 // Read-Write No-Execute
-extern void  *slobos_map(uintptr_t map_hnd, size_t size);
-extern void   slobos_unmap(uintptr_t map_hnd, void* base, size_t size);
+// metadata is stored as a 4-bit value.
+extern void  *slobos_map(uintptr_t map_hnd, uint8_t* metadata, size_t size);
+extern void   slobos_unmap(uintptr_t map_hnd, uint8_t metadata, void* base, size_t size);
 extern size_t slobos_pgsize();
 
 typedef struct slobos_allocator *slobos_allocator_t;
@@ -59,7 +60,7 @@ size_t slobos_allocator_size();
 
 // Returns zero on success, one on failure.
 //     maxSize: The maximum slobos size; must be a power of two greater than 32, and less than cacheSize. Hard limit is 0x40000.
-//   cacheSize: The cache size; must be a power of two greater than maxslobosSize. If zero, CACHE_SIZE_DEFAULT is assumed. Hard limit is 0x40000
+//   cacheSize: The cache size; must be a power of two greater than maxSize. If zero, CACHE_SIZE_DEFAULT is assumed. Hard limit is 0x40000
 //     map_hnd: See slobos_map
 int slobos_init(slobos_allocator_t state, size_t maxSize, size_t cacheSize, uintptr_t map_hnd);
 // map_hnd: See slobos_map

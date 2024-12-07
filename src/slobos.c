@@ -9,12 +9,16 @@
 
 #include "slobos.h"
 
-#define SLOBOS_MAGIC 0x51ABC000 /* lower 8 bits reserved for the index into the cache. */
+#define SLOBOS_MAGIC 0x51ABC000 /* lower 8 bits reserved for the index into the cache. bits 8:11 reserved for user-defined metadata. */
 
 struct slobos
 {
     struct slobos_cache* owner;
-    uint32_t head; // freelist head.
+    // Freelist Head.
+    uint32_t head;
+    // Bits  00-07: Cache index
+    // Bits  08-11: User-defined metadata from slobos_map.
+    // Bits  12-31: SLOBOS_MAGIC
     uint32_t magic;
     struct slobos *next, *prev;
     char data[];
@@ -103,10 +107,12 @@ __attribute__((no_sanitize("address")))
 #endif
 struct slobos* allocate_slobos(struct slobos_cache* cache, uint8_t cache_index, size_t size)
 {
-    struct slobos* slobos = slobos_map(cache->owner->map_hnd, cache->owner->cacheSize);
+    uint8_t metadata = 0;
+    struct slobos* slobos = slobos_map(cache->owner->map_hnd, &metadata, cache->owner->cacheSize);
 //    printf("allocated new slobos at %p of %lu bytes\n", slobos, cache->owner->cacheSize);
     slobos_memzero(slobos, cache->owner->cacheSize);
-    slobos->magic = SLOBOS_MAGIC | cache_index;
+    metadata &= 0b1111;
+    slobos->magic = SLOBOS_MAGIC | cache_index | ((uint32_t)metadata << 8);
     slobos->owner = cache;
     slobos->prev = NULL;
     slobos->next = slobos->prev;
@@ -207,7 +213,7 @@ void* slobos_realloc(slobos_allocator_t state, void* blk, size_t newsize)
 static struct slobos* slobos_valid(slobos_allocator_t state, struct slobos* slobos, int* magic_valid /* boolean, 0=false, 1=true */)
 {
     *magic_valid = 0;
-    if ((slobos->magic & 0xffffff00) != SLOBOS_MAGIC)
+    if ((slobos->magic & 0xfffff000) != SLOBOS_MAGIC)
         return NULL; // Invalid.
     uint8_t cache_index = slobos->magic & 0xff;
     if (cache_index > slobos->owner->owner->nCaches)
