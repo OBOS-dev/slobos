@@ -180,7 +180,10 @@ __attribute__((no_sanitize("address")))
 #endif
 void* slobos_calloc(slobos_allocator_t state, size_t objs, size_t szObjs)
 {
-    return slobos_memzero(slobos_alloc(state, objs*szObjs), objs*szObjs);
+    void* blk = slobos_alloc(state, objs*szObjs);
+    if (!blk)
+        return blk;
+    return slobos_memzero(blk, objs*szObjs);
 }
 
 #ifdef __GNUC__
