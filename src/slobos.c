@@ -110,7 +110,8 @@ struct slobos* allocate_slobos(struct slobos_cache* cache, uint8_t cache_index, 
     uint8_t metadata = 0;
     struct slobos* slobos = slobos_map(cache->owner->map_hnd, &metadata, cache->owner->cacheSize);
 //    printf("allocated new slobos at %p of %lu bytes\n", slobos, cache->owner->cacheSize);
-    slobos_memzero(slobos, cache->owner->cacheSize);
+// assume it is zeroed.
+//    slobos_memzero(slobos, cache->owner->cacheSize);
     metadata &= 0b1111;
     slobos->magic = SLOBOS_MAGIC | cache_index | ((uint32_t)metadata << 8);
     slobos->owner = cache;
