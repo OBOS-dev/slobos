@@ -6,7 +6,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <stdio.h>
 
 #include "slobos.h"
 
@@ -145,7 +144,7 @@ void* slobos_alloc(slobos_allocator_t state, size_t size)
 
     if (!cache)
     {
-        printf("bruh, size=%lu\n", size);
+        //printf("bruh, size=%lu\n", size);
         return NULL;
     }
 
