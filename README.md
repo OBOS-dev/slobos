@@ -18,9 +18,8 @@ As well as one optional macro:
   
 You must also define three functions:
 ```c
-// Read-Write No-Execute
-extern void  *slobos_map(size_t size);
-extern void   slobos_unmap(void* base, size_t size);
+extern void  *slobos_map(uintptr_t map_hnd, size_t size);
+extern void   slobos_unmap(uintptr_t map_hnd, void* base, size_t size);
 extern size_t slobos_pgsize();
 ```
 From there, you should be set to use the slobos allocator.

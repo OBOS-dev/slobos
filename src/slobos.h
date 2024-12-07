@@ -39,9 +39,14 @@
 #endif
 
 // To be defined by user.
+
+// map_hnd is an optional value that can be used to differentiate between different slab_allocator_t while mapping
+// For example, one can use this to differentiate between a non-paged pool allocator,
+// and a paged-pool allocator.
+
 // Read-Write No-Execute
-extern void  *slobos_map(size_t size);
-extern void   slobos_unmap(void* base, size_t size);
+extern void  *slobos_map(uintptr_t map_hnd, size_t size);
+extern void   slobos_unmap(uintptr_t map_hnd, void* base, size_t size);
 extern size_t slobos_pgsize();
 
 typedef struct slobos_allocator *slobos_allocator_t;
@@ -53,9 +58,12 @@ size_t slobos_allocator_size();
 // Thread-safety must be added on top of these APIs.
 
 // Returns zero on success, one on failure.
-// maxslobosSize: The maximum slobos size; must be a power of two greater than 32, and less than cacheSize. Hard limit is 0x40000.
+//     maxSize: The maximum slobos size; must be a power of two greater than 32, and less than cacheSize. Hard limit is 0x40000.
 //   cacheSize: The cache size; must be a power of two greater than maxslobosSize. If zero, CACHE_SIZE_DEFAULT is assumed. Hard limit is 0x40000
-int slobos_init(slobos_allocator_t state, size_t maxSize, size_t cacheSize);
+//     map_hnd: See slobos_map
+int slobos_init(slobos_allocator_t state, size_t maxSize, size_t cacheSize, uintptr_t map_hnd);
+// map_hnd: See slobos_map
+int slobos_set_map_hnd(slobos_allocator_t state, uintptr_t map_hnd);
 
 void* slobos_alloc(slobos_allocator_t state, size_t size);
 void* slobos_calloc(slobos_allocator_t state, size_t objs, size_t szObjs);

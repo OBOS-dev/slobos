@@ -33,6 +33,7 @@ struct slobos_allocator
     struct slobos_cache caches[18-5 /* bsf(0x40000) - bsf(0x20) */];
     size_t nCaches;
     size_t cacheSize;
+    uintptr_t map_hnd;
 };
 
 size_t slobos_allocator_size()
@@ -43,7 +44,7 @@ size_t slobos_allocator_size()
 #ifdef __GNUC__
 __attribute__((no_sanitize("address")))
 #endif
-int slobos_init(slobos_allocator_t state, size_t maxSize, size_t cacheSize)
+int slobos_init(slobos_allocator_t state, size_t maxSize, size_t cacheSize, uintptr_t map_hnd)
 {
     if (!state)
         return 1;
@@ -62,7 +63,13 @@ int slobos_init(slobos_allocator_t state, size_t maxSize, size_t cacheSize)
     state->cacheSize = cacheSize;
     for (size_t i = 0; i < state->nCaches; i++)
         state->caches[i].owner = state;
-
+    return slobos_set_map_hnd(state, map_hnd);
+}
+int slobos_set_map_hnd(slobos_allocator_t state, uintptr_t map_hnd)
+{
+    if (!state)
+        return 1;
+    state->map_hnd = map_hnd;
     return 0;
 }
 
@@ -97,7 +104,7 @@ __attribute__((no_sanitize("address")))
 #endif
 struct slobos* allocate_slobos(struct slobos_cache* cache, uint8_t cache_index, size_t size)
 {
-    struct slobos* slobos = slobos_map(cache->owner->cacheSize);
+    struct slobos* slobos = slobos_map(cache->owner->map_hnd, cache->owner->cacheSize);
 //    printf("allocated new slobos at %p of %lu bytes\n", slobos, cache->owner->cacheSize);
     slobos_memzero(slobos, cache->owner->cacheSize);
     slobos->magic = SLOBOS_MAGIC | cache_index;

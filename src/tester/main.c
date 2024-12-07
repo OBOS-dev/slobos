@@ -2,18 +2,21 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <assert.h>
 #include <string.h>
 
 #include <sys/mman.h>
 
 #include <unistd.h>
 
-void *slobos_map(size_t sz)
+void *slobos_map(uintptr_t map_hnd, size_t sz)
 {
+    assert(map_hnd == 0x10);
     return mmap(NULL, sz, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 }
-void slobos_unmap(void* blk, size_t sz)
+void slobos_unmap(uintptr_t map_hnd, void* blk, size_t sz)
 {
+    assert(map_hnd == 0x10);
     munmap(blk, sz);
 }
 size_t slobos_pgsize()
@@ -32,7 +35,7 @@ int main()
         perror("mmap");
         return -1;
     }
-    slobos_init(alloc, 0x1000, 0x4000);
+    slobos_init(alloc, 0x1000, 0x4000, 0x10);
     char* test = slobos_alloc(alloc, 15);
     memcpy(test, "Hello, world!\n", 14);
     printf("%s", test);
